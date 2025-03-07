@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Generator</title>
+</head>
+<body>
+    <h2>AI Email Generator</h2>
+
+    <form id="emailForm" method="post">
+        {% csrf_token %}
+
+        <label for="template">Choose a template:</label>
+        <select id="template" name="template">
+            <option value="job_application">Job Application</option>
+            <option value="business_proposal">Business Proposal</option>
+            <option value="client_followup">Client Follow-up</option>
+            <option value="custom">Custom</option>
+        </select>
+
+        <div id="extraDetailsDiv">
+            <label for="extraDetails">Additional Details:</label>
+            <textarea id="extraDetails" name="extraDetails" rows="4" cols="50" placeholder="Enter event details, recipient name, job title, etc."></textarea>
+        </div>
+
+        <div id="customPromptDiv" style="display: none;">
+            <label for="customPrompt">Custom Prompt:</label>
+            <textarea id="customPrompt" name="customPrompt" rows="4" cols="50"></textarea>
+        </div>
+
+        <button type="submit">Generate Email</button>
+    </form>
+
+    <h3>Generated Email:</h3>
+    <p id="output"></p>
+
+    <script>
+        document.getElementById("template").addEventListener("change", function () {
+            let selectedTemplate = this.value;
+            document.getElementById("customPromptDiv").style.display = selectedTemplate === "custom" ? "block" : "none";
+        });
+
+        document.getElementById("emailForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            let template = document.getElementById("template").value;
+            let extraDetails = document.getElementById("extraDetails").value.trim();
+            let customPrompt = document.getElementById("customPrompt").value.trim();
+
+            let response = await fetch("{% url 'generate_text' %}", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ template: template, extraDetails: extraDetails, customPrompt: customPrompt })
+            });
+
+            let data = await response.json();
+            document.getElementById("output").innerText = data.response || "Error generating email.";
+        });
+    </script>
+</body>
+</html>
